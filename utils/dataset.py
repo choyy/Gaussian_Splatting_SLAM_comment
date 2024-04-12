@@ -120,6 +120,23 @@ class TUMParser:
             }
 
             self.frames.append(frame)
+class MyParser:
+    def __init__(self, input_folder):
+        self.input_folder = input_folder
+        self.load_poses(self.input_folder, frame_rate=32)
+        self.n_img = len(self.color_paths)
+
+    def parse_list(self, filepath, skiprows=0):
+        data = np.loadtxt(filepath, delimiter=" ", dtype=np.unicode_, skiprows=skiprows)
+        return data
+
+    def load_poses(self, datapath, frame_rate=-1):
+        image_list = os.path.join(datapath, "rgb.txt")
+        image_data = self.parse_list(image_list)
+        img_paths = image_data[:, 1].astype(np.unicode_)
+        self.color_paths = []
+        for i in range(len(img_paths)):
+            self.color_paths += [os.path.join(datapath, img_paths[i])]
 
 
 class EuRoCParser:
@@ -254,8 +271,8 @@ class MonocularDataset(BaseDataset):
 
     def __getitem__(self, idx):
         color_path = self.color_paths[idx]
-        pose = self.poses[idx]
-
+        # pose = self.poses[idx]
+        pose = np.eye(4) # #fix: 不载入位姿信息
         image = np.array(Image.open(color_path))
         depth = None
 
@@ -401,6 +418,13 @@ class TUMDataset(MonocularDataset):
         self.depth_paths = parser.depth_paths #深度图
         self.poses = parser.poses #pose信息
 
+class MyDataset(MonocularDataset):
+    def __init__(self, args, path, config):
+        super().__init__(args, path, config)
+        dataset_path = config["Dataset"]["dataset_path"]
+        parser = MyParser(dataset_path)
+        self.num_imgs = parser.n_img #图像数量
+        self.color_paths = parser.color_paths #彩色图
 
 class ReplicaDataset(MonocularDataset):
     def __init__(self, args, path, config):
@@ -488,6 +512,8 @@ class RealsenseDataset(BaseDataset):
 def load_dataset(args, path, config):
     if config["Dataset"]["type"] == "tum":
         return TUMDataset(args, path, config)
+    elif config["Dataset"]["type"] == "mydata":
+        return MyDataset(args, path, config)
     elif config["Dataset"]["type"] == "replica":
         return ReplicaDataset(args, path, config)
     elif config["Dataset"]["type"] == "euroc":

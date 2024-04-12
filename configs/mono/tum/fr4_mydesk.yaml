@@ -1,0 +1,19 @@
+inherit_from: "configs/mono/tum/base_config.yaml"
+
+Dataset:
+  type: 'mydata'
+  dataset_path: "../datasets/record_data2_tum_format/data"
+  Calibration:
+    fx: 703.8754056026542
+    fy: 703.5276429547746
+    cx: 349.0968634371816
+    cy: 471.5402005290403
+    k1: 0.08096957872107984
+    k2: -0.09403877887020429
+    p1: -0.001343057274936213
+    p2: -0.002024978757333454
+    k3: 0.0
+    width: 720
+    height: 960
+    # depth_scale: 5000.0 # 取消后dataset.py不加载深度图
+    distorted: True
